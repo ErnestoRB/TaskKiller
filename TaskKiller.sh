@@ -11,66 +11,70 @@
 tmp_foldername="taskk"
 file_prefix="taskkf-"
 
-if [ ! -e "/tmp/$tmp_foldername" ]
-then
-	mkdir "/tmp/$tmp_foldername"
-fi
+infoCheck=false #verifica si ya se hizo el backup de informacion de procesos
 
-source functions
+source functions.sh
 
-while true
-do
-	
-	for i in seq 1 10
+recopilarInfo(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si el usuario desea solo borrar un proceso por nombre (asi no espera el tiempo de recopilacion)
+	if [ ! -e "/tmp/$tmp_foldername" ]
+	then
+		mkdir "/tmp/$tmp_foldername"
+	fi
+
+
+	while true
 	do
-		salvarInfo "${file_prefix}${i}" # guardar información
-		sleep 1m # esperar un minuto (que tan buena idea es?) 
-	done
-	# una vez terminado analizar que programa tuvieron un comportamiento extremista en esos 10 minutos
+	
+		for i in seq 1 10
+		do
+			salvarInfo "${file_prefix}${i}" # guardar información
+			sleep 1m # esperar un minuto (que tan buena idea es?) 
+		done
+	let infoCheck=true
+		# una vez terminado analizar que programa tuvieron un comportamiento extremista en esos 10 minutos
 
 done
 
-nombre(){
-	echo "Inserte nombre del proceso: "
-	read proceso
-	idProceso=$(pidof $proceso)
-	echo $idProceso
-	if [ -z "$idProceso" ] #si idProceso es nulo, no existe el proceso
-	then
-		echo "No existe un proceso con ese nombre"
-	else
-		echo "Se eliminara el proceso con ID " $idProceso
-		echo "¿Continuar? (s/n) "
-		read opcion
-		if [ $opcion = "s" ]
-		then
-			pkill $proceso
-			echo "Se ha eliminado un proceso satisfactoriamente"
-		else
-			echo "Operacion cancelada"
-		fi
-	fi
+
 }
 
+opcion=0
 
-clear
-echo "¿Como deseas eliminar un proceso?"
-echo "1) Por nombre"
-echo "2) Limite de RAM"
-echo "3) Limite de CPU"
-echo "Inserte opcion:"
-read opcion
+while [ $opcion -ne 4 ]
+do
+	clear
+	echo "¿Como deseas eliminar un proceso?"
+	echo "1) Por nombre"
+	echo "2) Limite de RAM"
+	echo "3) Limite de CPU"
+	echo "4) Salir"
+	echo "Inserte opcion:"
+	read opcion
 
-case $opcion in 
-	1)
-		nombre
-		;;
-	2)
-		;;
-	3)
-		;;
-	*)
-		echo "No es una opcion"
-esac
-
-
+	case $opcion in 
+		1)
+			nombre
+			sleep 3s
+			;;
+		2)
+			echo "Verificando si hay informacion de procesos..."
+			if [ "$infoCheck" = true ]
+			then
+				echo "Hay informacion sobre procesos!"
+				#hacer lo que tenga que seguir
+			else
+				echo "Recopilaremos informacion de procesos, esto tardará un tiempo"
+				recopilarInfo
+			fi
+			sleep 3s
+			;;
+		3)
+			;;
+		4)
+			echo "Hasta luego"
+			;;
+		*)
+			echo "No es una opcion"
+			sleep 3s
+	esac
+done
