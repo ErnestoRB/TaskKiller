@@ -8,6 +8,28 @@
 # cut -d' ' -fn 
 # donde "n" es nombre de campo a accesar
 
+tmp_foldername="taskk"
+file_prefix="taskkf-"
+
+if [ ! -e "/tmp/$tmp_foldername" ]
+then
+	mkdir "/tmp/$tmp_foldername"
+fi
+
+source functions
+
+while true
+do
+	
+	for i in seq 1 10
+	do
+		salvarInfo "${file_prefix}${i}" # guardar información
+		sleep 1m # esperar un minuto (que tan buena idea es?) 
+	done
+	# una vez terminado analizar que programa tuvieron un comportamiento extremista en esos 10 minutos
+
+done
+
 nombre(){
 	echo "Inserte nombre del proceso: "
 	read proceso
