@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Comando que muestra el ID del proceso, el porcentaje de cpu usado, el comando (nombre de binario), tamaño de memoria usado en memoria
+# fisica, el usuario y la cantidad de memoria usada"
+# ps -eo "%p,%C,%c," -o rss -o "%U," -o size
+# se puede usar el comando cut para poder filtrar por columnas
+# Ya que están separados por comas (cada columna) se usaría el comando siguiente
+# cut -d' ' -fn 
+# donde "n" es nombre de campo a accesar
+
 nombre(){
 	echo "Inserte nombre del proceso: "
 	read proceso
