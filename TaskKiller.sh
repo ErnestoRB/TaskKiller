@@ -16,18 +16,29 @@ then
 	mkdir "/tmp/$tmp_foldername"
 fi
 
-source functions
+source functions # cargar funciones para modularizar el código
+
+valores=""
+for i in seq 1 10
+do
+	if [ -z $valores ]
+	then
+		valores="${file_prefix}${i},"
+	else
+		valores="${valores}${file_prefix}${i},"
+	fi
+done
 
 while true
 do
 	
-	for i in seq 1 10
+	for i in valores
 	do
 		salvarInfo "${file_prefix}${i}" # guardar información
 		sleep 1m # esperar un minuto (que tan buena idea es?) 
 	done
 	# una vez terminado analizar que programa tuvieron un comportamiento extremista en esos 10 minutos
-
+	analizar $valores
 done
 
 nombre(){
