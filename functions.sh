@@ -5,8 +5,10 @@ salvarInfo() { # función que toma la información de todos los procesos en el s
         echo "Se debe especificar el archivo!"
         return 1
     fi
-    # guardar información de procesos
-    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size | cat >"$1"
+    # guardar información de procesos. la información se separa en columnas con "," como delimitador
+    # se imprime: PID, CPU, MEM, COMMAND, RSS, USER, VIRT
+    # sin encabezados para mejor manipulacion!
+    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size --no-headers | cat >"$1"
     return 0
 }
 
@@ -36,20 +38,37 @@ analizar() {
     # que criterio tomar ?
     # CPU -> arriba de 50% ya es abusivo ?
     # MEM -> >70%?
-    if [ $# -eq 0 ]
+    if [ $# -eq 0 ] # $# se refiere al numero de argumentos pasados al script
     then
         echo "Proporciona al menos un archivo el cual analizar"
         return 1
     fi
     summary_file="/tmp/$tmp_foldername/summary"
     # cat $@ une toda la información de los procesos capturada por salvarInfo()
+    # $@ se refiere a todos los argumentos pasados al programa
     echo `cat $@` >$summary_file # limpiar archivo
-    # uniq omite repeticiones
-    # p <- pid de procesos que consumen 70% o más de memoria
-    for p in `cat $@ | awk -F"," 'NR>1 && $3 >= 70 { print $1 } ' | uniq `
-    do
-        echo "$p, $(cat $@ | grep $p | wc -l )" >>$summary_file # cuantas veces se encontró
-    done
-    # p <- pid de procesos que usan 50% o más de CPU
-    # cat $@ | awk -F"," 'NR>1 && $2 >= 50 { print $1 } '
+    # uniq omite repeticiones en archivos ordenados
+    # genera una salida en campos con los procesos que en más de un archivo aparecieron, es decir
+    # que durante n "iteraciones" de salvarInfo() estaban corriendo con ma´s de 70% uso de CPU
+    cat $summary_file | awk -F"," '$3 >= 70 { print $1 } ' | sort | uniq -dc
+}
+
+recopilarInfo(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si el usuario desea solo borrar un proceso por nombre (asi no espera el tiempo de recopilacion)
+	if [ ! -e "/tmp/$tmp_foldername" ] # comprueba que exista folder de datos
+	then
+		mkdir "/tmp/$tmp_foldername" # crear folder
+	else
+		rm -f "/tmp/$tmp_foldername/*" # borrar archivos de la recopilación pasada
+	fi
+	while true # esto debería correr siempre!
+	do
+		for i in $valores
+		do
+			salvarInfo $i # guardar información 
+			sleep $t_save # esperar para que las instantaneas estén separadas
+		done
+		# una vez terminado analizar que programas tuvieron un comportamiento raro en esos 10 minutos
+		analizar $valores
+		let infoCheck=true
+	done
 }
