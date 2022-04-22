@@ -1,18 +1,16 @@
 salvarInfo() { # función que toma la información de todos los procesos en el sistema y las guarda en el
-# archivo indicado, pero en ruta /tmp
+# archivo indicado
     if [ -z $1 ]
     then
         echo "Se debe especificar el archivo!"
         return 1
     fi
-    # guardar información de procesos ordenada por consumo de memoria
-    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size --sort -rss | cat >"/tmp/$tmp_folder/$1.mem"
-    # por cpu
-    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size --sort -%cpu | cat >"/tmp/$tmp_folder/$1.cpu"
+    # guardar información de procesos
+    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size | cat >"$1"
     return 0
 }
 
-nombre(){
+nombre() {
 	echo "Inserte nombre del proceso: "
 	read proceso
 	idProceso=$(pidof $proceso)
@@ -43,8 +41,15 @@ analizar() {
         echo "Proporciona al menos un archivo el cual analizar"
         return 1
     fi
-    for i in $@  # se le dan los archivos que contienen la información del sistema a analizar
+    summary_file="/tmp/$tmp_foldername/summary"
+    # cat $@ une toda la información de los procesos capturada por salvarInfo()
+    echo `cat $@` >$summary_file # limpiar archivo
+    # uniq omite repeticiones
+    # p <- pid de procesos que consumen 70% o más de memoria
+    for p in `cat $@ | awk -F"," 'NR>1 && $3 >= 70 { print $1 } ' | uniq `
     do
-    echo "0" #para no generar error de ejecucion
+        echo "$p, $(cat $@ | grep $p | wc -l )" >>$summary_file # cuantas veces se encontró
     done
+    # p <- pid de procesos que usan 50% o más de CPU
+    # cat $@ | awk -F"," 'NR>1 && $2 >= 50 { print $1 } '
 }

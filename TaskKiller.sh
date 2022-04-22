@@ -10,10 +10,11 @@
 
 tmp_foldername="taskk"
 file_prefix="taskkf-"
+t_save="1m"
 
 infoCheck=false #verifica si ya se hizo el backup de informacion de procesos
 
-source functions # cargar funciones para modularizar el código
+source functions.sh # cargar funciones para modularizar el código
 
 valores="" # valores se refiere a los archivos en los cuales se va a guardar una instantánea del
 # sistema para de ahí tomar decisiones
@@ -21,14 +22,14 @@ for i in seq 1 10 # generar 10 archivos
 do
 	if [ -z $valores ]
 	then
-		valores="${file_prefix}${i},"
+		valores="/tmp/${tmp_foldername}/${file_prefix}${i}"
 	else
-		valores="${valores}${file_prefix}${i},"
+		valores=" ${valores}/tmp/${tmp_foldername}/${file_prefix}${i}"
 	fi
 done
 
 recopilarInfo(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si el usuario desea solo borrar un proceso por nombre (asi no espera el tiempo de recopilacion)
-	if [ ! -e "/tmp/$tmp_foldername" ]
+	if [ ! -e "/tmp/$tmp_foldername" ] # comprueba que exista folder de datos
 	then
 		mkdir "/tmp/$tmp_foldername"
 	fi
@@ -36,10 +37,10 @@ recopilarInfo(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si 
 	do
 		for i in valores
 		do
-			salvarInfo "${file_prefix}${i}" # guardar información 
-			sleep 1m # esperar un minuto entre cada instantaea (que tan buena idea es?)  
+			salvarInfo $i # guardar información 
+			sleep $t_save # esperar para que las instantaneas estén separadas
 		done
-		# una vez terminado analizar que programa tuvieron un comportamiento extremista en esos 10 minutos
+		# una vez terminado analizar que programas tuvieron un comportamiento raro en esos 10 minutos
 		analizar $valores
 		let infoCheck=true
 	done
