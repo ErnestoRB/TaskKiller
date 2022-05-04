@@ -1,20 +1,3 @@
-folder="taskk"
-file_prefix="taskkf-"
-t_save="10s"
-log_file="killer.log"
-
-snapshots="" # snapshots se refiere a los archivos en los cuales se va a guardar una instantánea del
-# sistema para de ahí tomar decisiones
-for i in `seq 1 10` # generar 10 archivos
-do
-	if [ -z $snapshots ]
-	then
-		snapshots="/tmp/${folder}/${file_prefix}${i}"
-	else
-		snapshots="${snapshots} /tmp/${folder}/${file_prefix}${i}"
-	fi
-done
-
 source functions.sh # cargar funciones para modularizar el código
 
 opcion=0

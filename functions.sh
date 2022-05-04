@@ -53,7 +53,12 @@ analizarSnapshots() {
     cat $summary_file | awk -F"," '$3 >= 70 { print $1 } ' | sort | uniq -dc
 }
 
-observarSistema(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si el usuario desea solo borrar un proceso por nombre (asi no espera el tiempo de recopilacion)
+observarSistema(){
+	if [ -z "$snapshots" ]
+	then
+		echo "La variable snapshots no está definida"
+		return 1
+	fi
 	if [ ! -e "/tmp/$folder" ] # comprueba que exista folder de datos
 	then
 		mkdir "/tmp/$folder" # crear folder
@@ -62,12 +67,13 @@ observarSistema(){ #funcion valida para opcion 2 y 3, no se hace al inicio por s
 	fi
 	while true # esto debería correr siempre!
 	do
-		for i in $valores
+		for i in $snapshots
 		do
 			guardarSnapshot $i # guardar información 
-			sleep $t_save # esperar para que las instantaneas estén separadas
+			# ${var:-word} Si la variable var no está declarada o es nula ("") entonces usar word
+			sleep ${t_save:-15s} # esperar para que las instantaneas estén separadas
 		done
 		# una vez terminado analizarSnapshots que programas tuvieron un comportamiento raro en esos 10 minutos
-		analizarSnapshots $valores
+		analizarSnapshots $snapshots
 	done
 }
