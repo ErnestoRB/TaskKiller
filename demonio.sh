@@ -16,7 +16,7 @@ status() {
 }
 
 start() {
-    if [ ! -e "/usr/bin/${SERVICE}" ]
+    if [ ! -e "/usr/bin/${SERVICE}" ] # comprobar que realmente si exista
     then
         echo "No existe el servicio"
         exit 1

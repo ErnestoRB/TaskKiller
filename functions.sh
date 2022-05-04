@@ -1,8 +1,8 @@
-salvarInfo() { # función que toma la información de todos los procesos en el sistema y las guarda en el
+guardarSnapshot() { # función que toma la información de todos los procesos en el sistema y las guarda en el
 # archivo indicado
     if [ -z $1 ]
     then
-        echo "Se debe especificar el archivo!"
+        echo "No se proporcionó ningun archivo en donde guardar una instantanea!"
         return 1
     fi
     # guardar información de procesos. la información se separa en columnas con "," como delimitador
@@ -34,41 +34,40 @@ nombre() {
 	return 0
 }
 
-analizar() {
+analizarSnapshots() {
     # que criterio tomar ?
     # CPU -> arriba de 50% ya es abusivo ?
     # MEM -> >70%?
     if [ $# -eq 0 ] # $# se refiere al numero de argumentos pasados al script
     then
-        echo "Proporciona al menos un archivo el cual analizar"
+        echo "No se proporcionaron archivos de donde analizar la información del sistema"
         return 1
     fi
-    summary_file="/tmp/$tmp_foldername/summary"
-    # cat $@ une toda la información de los procesos capturada por salvarInfo()
+    summary_file="/tmp/$folder/summary"
+    # cat $@ une toda la información de los procesos capturada por guardarSnapshot()
     # $@ se refiere a todos los argumentos pasados al programa
     echo `cat $@` >$summary_file # limpiar archivo
     # uniq omite repeticiones en archivos ordenados
     # genera una salida en campos con los procesos que en más de un archivo aparecieron, es decir
-    # que durante n "iteraciones" de salvarInfo() estaban corriendo con ma´s de 70% uso de CPU
+    # que durante n "iteraciones" de guardarSnapshot() estaban corriendo con ma´s de 70% uso de CPU
     cat $summary_file | awk -F"," '$3 >= 70 { print $1 } ' | sort | uniq -dc
 }
 
-recopilarInfo(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si el usuario desea solo borrar un proceso por nombre (asi no espera el tiempo de recopilacion)
-	if [ ! -e "/tmp/$tmp_foldername" ] # comprueba que exista folder de datos
+observarSistema(){ #funcion valida para opcion 2 y 3, no se hace al inicio por si el usuario desea solo borrar un proceso por nombre (asi no espera el tiempo de recopilacion)
+	if [ ! -e "/tmp/$folder" ] # comprueba que exista folder de datos
 	then
-		mkdir "/tmp/$tmp_foldername" # crear folder
-	else
-		rm -f "/tmp/$tmp_foldername/*" # borrar archivos de la recopilación pasada
+		mkdir "/tmp/$folder" # crear folder
+ 	else
+		rm -f "/tmp/$folder/*" # borrar archivos de la recopilación pasada
 	fi
 	while true # esto debería correr siempre!
 	do
 		for i in $valores
 		do
-			salvarInfo $i # guardar información 
+			guardarSnapshot $i # guardar información 
 			sleep $t_save # esperar para que las instantaneas estén separadas
 		done
-		# una vez terminado analizar que programas tuvieron un comportamiento raro en esos 10 minutos
-		analizar $valores
-		let infoCheck=true
+		# una vez terminado analizarSnapshots que programas tuvieron un comportamiento raro en esos 10 minutos
+		analizarSnapshots $valores
 	done
 }
