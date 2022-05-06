@@ -1,3 +1,5 @@
+#!/bin/bash
+
 CONFIG_FOLDER="/etc/taskkiller" # folder de configuracion
 PIDFILE="daemon.pid" # archivo donde se guardará el process ID
 SERVICE="/usr/bin/demonio.sh" # ruta del ejecutable
@@ -10,10 +12,11 @@ fi
 status() {
     if [ -s $PIDFILE_PATH ]
     then
-        if [ $(ps -p $(cat /etc/taskkiller/daemon.pid) | wc -l) -gt 1 ] # si se encuentra registro del proceso entonces está corriendo
+        if [ $(ps -p $(cat $PIDFILE_PATH) | wc -l) -gt 1 ] # si se encuentra registro del proceso entonces está corriendo
         then
             return 0 # corriendo
         fi
+        rm $PIDFILE_PATH # borrar archivo con el PID
     fi
     return 1 # apagado
 }

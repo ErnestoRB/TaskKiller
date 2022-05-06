@@ -1,9 +1,11 @@
+#!/bin/bash
+
 folder="taskk"
 file_prefix="taskkf-"
 t_save="10s"
 log_file="log"
 
-. /usr/bin/functions.sh # igual que source
+. /usr/bin/functions.sh # igual que source pero compatible con casi todas las shells
 
 # sistema para de ahí tomar decisiones
 for i in $(seq 1 10) # generar 10 archivos
@@ -23,4 +25,4 @@ then
     mkdir $log_dir
 fi
 
-observarSistema >${log_dir}/${log_file}
+observarSistema >&${log_dir}/${log_file} # >${log_dir}/${log_file} 2>${log_dir}/${log_file}
