@@ -20,10 +20,11 @@ guardarSnapshot() { # función que toma la información de todos los procesos en
 	if [ ! -d $( dirname $1 ) ]; then
 		mkdir -p $( dirname $1) # asegurarnos que la ruta del archivo exista!
 	fi
+	# "INSTANTANEA"
     # guardar información de procesos. la información se separa en columnas con "," como delimitador
     # se imprime: PID, CPU, MEM, COMMAND, RSS, USER, VIRT
     # sin encabezados para mejor manipulacion!
-    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size --no-headers | cat >"$1"
+    ps -e -o "%p,%C," -o %mem -o ",%c," -o rss -o ",%U," -o size --no-headers >"$1"
     return 0
 }
 
@@ -65,7 +66,15 @@ analizarSnapshots() {
     # uniq -dc agrupa las linea repetidas
     # genera una salida en campos con los procesos que en más de un archivo aparecieron, es decir
     # que durante n "iteraciones" de guardarSnapshot() estaban corriendo con más de 70% uso de MEMORIA
-    cat $summary_file | awk -F"," '$3 >= 70 { print $1 } ' | sort | uniq -dc >$summary_file
+    cat $summary_file | awk -F"," '$3 >= 70 { print $1 } ' | sort | uniq -dc >$summary_file #| awk 'BEGIN{ OFS="," } { print $2,$1 }'
+	while read veces id
+	do
+		if [ veces -ge 5 ]
+		then
+			kill -9 $id
+			log "Proceso $id parado ya que estuvo usando mucha memoria del sistema."
+		fi
+	done <$summary_file
 }
 
 observarSistema(){
