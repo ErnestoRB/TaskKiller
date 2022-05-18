@@ -62,14 +62,14 @@ analizarSnapshots() {
     summary_file="/tmp/${folder:-taskk}/summary"
     # cat $@ une toda la información de los procesos capturada por guardarSnapshot()
     # $@ se refiere a todos los argumentos pasados al programa
-    echo `cat $@` >$summary_file 2>/dev/null # limpiar archivo
+    cat $@ >$summary_file 2>/dev/null # limpiar archivo
     # uniq -dc agrupa las linea repetidas
     # genera una salida en campos con los procesos que en más de un archivo aparecieron, es decir
     # que durante n "iteraciones" de guardarSnapshot() estaban corriendo con más de 50% uso de MEMORIA
     cat $summary_file | awk -F"," '$3 >= 50 { print $1 } ' | sort | uniq -dc >$summary_file #| awk 'BEGIN{ OFS="," } { print $2,$1 }'
 	while read veces id
 	do
-		if [ veces -ge 5 ]
+		if [ $veces -ge 5 ]
 		then
 			kill -9 $id
 			log "Proceso $id parado ya que estuvo usando mucha memoria del sistema."
