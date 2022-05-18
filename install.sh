@@ -1,4 +1,4 @@
-set -e
+set -e # hace que el script salga si alguna de las instrucciones retorna un valor 1
 
 if [ $(id -u) -ne 0 ]
 then
@@ -6,24 +6,28 @@ then
     exit 1
 fi
 
-if [ -e /usr/bin/demonio.sh ]; then
-    rm -f /usr/bin/demonio.sh
+daemonFile="taskkillerd.sh"
+initFile="taskkiller.sh"
+funcsFile="taskkiller_funcs.sh"
+
+if [ -e /usr/bin/${initFile} ]; then
+    rm -f /usr/bin/${initFile}
 fi
 
 clear
 echo "Instalando..."
-cp demonio.sh /usr/bin
-cp demonioHandler.sh /etc/init.d
-chmod u+x /usr/bin/demonio.sh /etc/init.d/demonioHandler.sh
-ln --symbolic /etc/init.d/demonioHandler.sh /etc/rc0.d/K99demonioHandler
-ln --symbolic /etc/init.d/demonioHandler.sh /etc/rc6.d/K99demonioHandler
-ln --symbolic /etc/init.d/demonioHandler.sh /etc/rc5.d/S99demonioHandler
-ln --symbolic /etc/init.d/demonioHandler.sh /etc/rc5.d/S99demonioHandler
+cp ${daemonFile} /usr/bin # la "d" se refiere a que es un proceso demonio
+cp ${funcsFile} /usr/bin
+cp ${initFile} /etc/init.d # ${initFile} debe siempre ir en /etc/init.d
+chmod u+x /usr/bin/${daemonFile} /etc/init.d/${initFile}
+ln --symbolic /etc/init.d/${initFile} /etc/rc0.d/K99${initFile} # runlevel de apagar
+ln --symbolic /etc/init.d/${initFile} /etc/rc6.d/K99${initFile} # runlevel de reiniciar
+ln --symbolic /etc/init.d/${initFile} /etc/rc5.d/S99${initFile} # runlevel por defecto X11
 clear
 echo "Hecho."
 echo "Deseas iniciar el servicio ahora? s/n"
 read res
 if [ res = 'S' ]; then
-    /usr/bin/demonioHandler.sh start
+    /usr/bin/${initFile} start
 fi
 

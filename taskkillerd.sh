@@ -5,7 +5,7 @@ file_prefix="taskkf-"
 t_save="10s" # cada 10s hacer un snapshot
 log_file="log"
 
-. /usr/bin/functions.sh # igual que source pero compatible con casi todas las shells
+. /usr/bin/taskkiller_funcs.sh # igual que source pero compatible con casi todas las shells
 
 # sistema para de ahí tomar decisiones
 for i in $(seq 1 10) # generar 10 archivos

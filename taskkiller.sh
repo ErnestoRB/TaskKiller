@@ -2,7 +2,7 @@
 
 CONFIG_FOLDER="/etc/taskkiller" # folder de configuracion
 PIDFILE="daemon.pid" # archivo donde se guardará el process ID
-SERVICE="/usr/bin/demonio.sh" # ruta del ejecutable
+DAEMON="/usr/bin/taskkillerd.sh" # ruta del ejecutable
 PIDFILE_PATH=${CONFIG_FOLDER}/${PIDFILE}
 
 if [ ! -d $CONFIG_FOLDER ]; then
@@ -22,17 +22,17 @@ status() {
 }
 
 start() {
-    if [ ! -e $SERVICE ] # comprobar que realmente si exista
+    if [ ! -e $DAEMON ] # comprobar que realmente si exista
     then
-        echo "No existe el servicio"
+        echo "No existe el demonio"
         exit 1
     fi
     if  ! status
     then
-        eval "${SERVICE}"' & >/dev/null' # correr ejecutable en segundo plano y redireccionar salida a ninguna parte
+        eval "${DAEMON}"' & >/dev/null' # correr ejecutable en segundo plano y redireccionar salida a ninguna parte
         echo $! >$PIDFILE_PATH # guardar PID en el archivo pid
     else 
-        echo "Servicio ya corriendo"
+        echo "demonio ya corriendo"
     fi
 }
 
@@ -42,7 +42,7 @@ stop() {
         kill -9 `cat $PIDFILE_PATH`
         rm $PIDFILE_PATH
     else
-        echo "Servicio no corriendo"
+        echo "demonio no corriendo"
     fi
 }
 

@@ -53,7 +53,7 @@ nombre() {
 analizarSnapshots() {
     # que criterio tomar ?
     # CPU -> arriba de 50% ya es abusivo ?
-    # MEM -> >70%?
+    # MEM -> >50%?
     if [ $# -eq 0 ] # $# se refiere al numero de argumentos pasados al script
     then
        	logError "No se proporcionaron archivos de donde analizar la información del sistema"
@@ -65,8 +65,8 @@ analizarSnapshots() {
     echo `cat $@` >$summary_file 2>/dev/null # limpiar archivo
     # uniq -dc agrupa las linea repetidas
     # genera una salida en campos con los procesos que en más de un archivo aparecieron, es decir
-    # que durante n "iteraciones" de guardarSnapshot() estaban corriendo con más de 70% uso de MEMORIA
-    cat $summary_file | awk -F"," '$3 >= 70 { print $1 } ' | sort | uniq -dc >$summary_file #| awk 'BEGIN{ OFS="," } { print $2,$1 }'
+    # que durante n "iteraciones" de guardarSnapshot() estaban corriendo con más de 50% uso de MEMORIA
+    cat $summary_file | awk -F"," '$3 >= 50 { print $1 } ' | sort | uniq -dc >$summary_file #| awk 'BEGIN{ OFS="," } { print $2,$1 }'
 	while read veces id
 	do
 		if [ veces -ge 5 ]
@@ -90,6 +90,7 @@ observarSistema(){
 			guardarSnapshot $i # guardar información 
 			# ${var:-word} Si la variable var no está declarada o es nula ("") entonces usar word
 			sleep ${t_save:-15s} # esperar para que las instantaneas estén separadas
+			# 15 segundos por defecto si t_save no está definitida
 		done
 		# una vez terminado analizar que programas tuvieron un comportamiento raro en esos 10 minutos
 		analizarSnapshots $snapshots
