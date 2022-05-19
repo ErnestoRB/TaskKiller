@@ -1,6 +1,6 @@
 #!/bin/bash
 
-folder="taskk"
+export folder="taskk"
 file_prefix="taskkf-"
 t_save="10s" # cada 10s hacer un snapshot
 log_file="log"

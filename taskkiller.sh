@@ -1,12 +1,18 @@
 #!/bin/bash
 
-CONFIG_FOLDER="/etc/taskkiller" # folder de configuracion
 PIDFILE="daemon.pid" # archivo donde se guardará el process ID
 DAEMON="/usr/bin/taskkillerd.sh" # ruta del ejecutable
 PIDFILE_PATH=${CONFIG_FOLDER}/${PIDFILE}
+export CONFIG_FOLDER="/etc/taskkiller" # folder de configuracion
+export CONFIG_FILE=${CONFIG_FOLDER}/procs.config
 
 if [ ! -d $CONFIG_FOLDER ]; then
     mkdir $CONFIG_FOLDER # crear folder de configuración
+fi
+
+if [ ! -e $CONFIG_FILE ]
+then
+    echo "" >$CONFIG_FILE
 fi
 
 status() {

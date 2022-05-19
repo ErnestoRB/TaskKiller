@@ -1,13 +1,17 @@
 #!/bin/bash
 
+## se pueden sobreescribir los valores de t_save y de folder
+## folder es el nombre base de los folders creados
+## t_save es el tiempo entre instantaneas
+
 log() {
 	PREFIX="[LOG]"
-	echo "${PREFIX}: $(date) -> $*"
+	echo "${PREFIX}: $(date +"%d/%m/%Y %T") -> $*"
 }
 
 logError() {
 	PREFIX="[ERR]"
-	echo "${PREFIX}: $(date) -> $*" >&2
+	echo "${PREFIX}: $(date +"%d/%m/%Y %T") -> $*" >&2
 }
 
 guardarSnapshot() { # función que toma la información de todos los procesos en el sistema y las guarda en el
@@ -28,27 +32,6 @@ guardarSnapshot() { # función que toma la información de todos los procesos en
     return 0
 }
 
-nombre() {
-	echo "Inserte nombre del proceso: "
-	read proceso
-	idProceso=$(pidof $proceso)
-	if [ -z "$idProceso" ] #si idProceso es nulo, no existe el proceso
-	then
-		echo "No existe un proceso con ese nombre"
-	else
-		echo "Se eliminara el proceso con ID siguiente(s): " $idProceso
-		echo "¿Continuar? (s/n) "
-		read opt
-		if [ $opt = "s" ]
-		then
-			pkill $proceso
-			echo "Se ha eliminado un proceso satisfactoriamente"
-		else
-			echo "Operacion cancelada"
-		fi
-	fi
-	return 0
-}
 
 analizarSnapshots() {
     # que criterio tomar ?
@@ -66,15 +49,27 @@ analizarSnapshots() {
     # uniq -dc agrupa las linea repetidas
     # genera una salida en campos con los procesos que en más de un archivo aparecieron, es decir
     # que durante n "iteraciones" de guardarSnapshot() estaban corriendo con más de 50% uso de MEMORIA
-    cat $summary_file | awk -F"," '$3 >= 50 { print $1 } ' | sort | uniq -dc >$summary_file #| awk 'BEGIN{ OFS="," } { print $2,$1 }'
+    cat $summary_file | awk -F"," '$3 >= 90 { print $1 } ' | sort | uniq -dc >$summary_file #| awk 'BEGIN{ OFS="," } { print $2,$1 }'
 	while read veces id
 	do
 		if [ $veces -ge 5 ]
 		then
 			kill -9 $id
-			log "Proceso $id parado ya que estuvo usando mucha memoria del sistema."
+			log "Proceso $id parado ya que estuvo usando mucha memoria del sistema por prolongado tiempo."
 		fi
 	done <$summary_file
+}
+
+esNumero() {
+	if [[ $# -ne 1 ]]
+	then
+		return 1
+	fi
+	if [[ $1 =~ ^[0-9]+$ ]]; then
+    	return 0
+	else
+		return 1
+	fi
 }
 
 observarSistema(){
@@ -88,11 +83,49 @@ observarSistema(){
 		for i in $snapshots
 		do
 			guardarSnapshot $i # guardar información 
+			while IFS=":" read proceso cpu memoria # leer archivo de configuración
+			do
+				if [ -z $cpu -a -z $memoria -a ! -z $proceso ]
+				then
+					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' { print $1 }')
+					do
+						kill -9 $pid
+						if [ $? -eq 0 ]
+						then
+							log "Se eliminó el proceso con ID $pid ($proceso) pues se especificó en la configuración"
+							guardarSnapshot $i # sobreescribir
+						fi
+					done
+					continue # debido a que no se especifico cpu o memoria entonces solo se va a eliminar por nombre del comando
+				fi
+				if esNumero $cpu; then
+					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' && $2 >'$cpu'{ print $1 }')
+					do
+						kill -9 $pid
+						if [ $? -eq 0 ]
+						then
+							log "Se eliminó el proceso con ID $pid ($proceso), debido a un uso superior a ${cpu}% del CPU"
+							guardarSnapshot $i # sobreescribir
+						fi
+					done
+				fi	
+				if esNumero $memoria; then
+					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' && $3 >'$memoria'{ print $1 }')
+					do
+						kill -9 $pid
+						if [ $? -eq 0 ]
+						then
+							log "Se eliminó el proceso con ID $pid ($proceso), debido a un uso superior ${memoria}% de memoria como fue indicado en la configuración"
+							guardarSnapshot $i # sobreescribir
+						fi
+					done
+				fi
+			done <${CONFIG_FILE:-"/etc/taskkiller/procs.config"}
 			# ${var:-word} Si la variable var no está declarada o es nula ("") entonces usar word
 			sleep ${t_save:-15s} # esperar para que las instantaneas estén separadas
 			# 15 segundos por defecto si t_save no está definitida
 		done
-		# una vez terminado analizar que programas tuvieron un comportamiento raro en esos 10 minutos
+		# una vez terminado analizar que programas tuvieron un comportamiento raro en esas instantaneas
 		analizarSnapshots $snapshots
 	done
 }
