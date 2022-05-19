@@ -1,5 +1,5 @@
+#!/bin/bash
 set -e # hace que el script salga si alguna de las instrucciones retorna un valor 1
-
 if [ $(id -u) -ne 0 ]
 then
     echo "El script debe tener permisos de root!"
@@ -26,8 +26,11 @@ ln -fs /etc/init.d/${initFile} /etc/rc5.d/S99${initFile} # runlevel por defecto 
 echo "Hecho."
 echo "Deseas iniciar el servicio ahora? s/n"
 read res
-if [[ res =~ ^(sS)$ ]]; then
-    /usr/bin/${initFile} start
-    echo "Servicio iniciado! "
+if [[ $res =~ ^[sS]$ ]]; then
+    /etc/init.d/${initFile} start
+    if /etc/init.d/${initFile} status
+    then
+        echo "Demonio iniciado!"
+    fi
 fi
 

@@ -85,7 +85,7 @@ observarSistema(){
 			guardarSnapshot $i # guardar información 
 			while IFS=":" read proceso cpu memoria # leer archivo de configuración
 			do
-				if [ -z $cpu -a -z $memoria -a ! -z $proceso ]
+				if [[ -z $cpu && -z $memoria && ! -z $proceso ]]
 				then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' { print $1 }')
 					do
