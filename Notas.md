@@ -1,0 +1,3 @@
+`taskkillerd.sh` es el archivo que orquesta todo el funcionamiento, sin embargo `taskkiller_funcs.sh` es la que contiene la mayor parte importante del código. Estos dos archivos son instalados en /usr/bin/
+
+`taskkiller.sh` es el script que hace posible ser iniciado en sistemas **init**. Esto significa que es compatible con casi cualquier sabor de Linux. Este archivo debe estar localizado en /etc/init.d/, y a su vez debe tener enlaces simbolicos en /etc/rc\*.d donde **\*** es el nivel de ejecución al que entra el sistema. Debido a que el runlevel en Ubuntu para la interfaz grafica es 5 entonces sea crea un enlace para poder iniciar el script al entrar el runlevel y ademaś para matarlo cuando entre a halt o reboot.

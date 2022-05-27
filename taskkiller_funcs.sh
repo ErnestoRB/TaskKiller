@@ -89,6 +89,10 @@ observarSistema(){
 				then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' { print $1 }')
 					do
+						if ! ps -p $pid
+						then
+							continue
+						fi
 						kill -9 $pid
 						if [ $? -eq 0 ]
 						then
@@ -101,6 +105,10 @@ observarSistema(){
 				if esNumero $cpu; then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' && $2 >'$cpu'{ print $1 }')
 					do
+						if ! ps -p $pid
+						then
+							continue
+						fi
 						kill -9 $pid
 						if [ $? -eq 0 ]
 						then
@@ -112,6 +120,10 @@ observarSistema(){
 				if esNumero $memoria; then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' && $3 >'$memoria'{ print $1 }')
 					do
+						if ! ps -p $pid
+						then
+							continue
+						fi
 						kill -9 $pid
 						if [ $? -eq 0 ]
 						then
