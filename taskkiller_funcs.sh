@@ -89,7 +89,7 @@ observarSistema(){
 				then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' { print $1 }')
 					do
-						if ! ps -p $pid
+						if ! ps -p $pid >/dev/null
 						then
 							continue
 						fi
@@ -105,7 +105,7 @@ observarSistema(){
 				if esNumero $cpu; then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' && $2 >'$cpu'{ print $1 }')
 					do
-						if ! ps -p $pid
+						if ! ps -p $pid >/dev/null
 						then
 							continue
 						fi
