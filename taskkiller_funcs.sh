@@ -120,7 +120,7 @@ observarSistema(){
 				if esNumero $memoria; then
 					for pid in $(cat $i | awk -F"," '$4 ~ '/$proceso/' && $3 >'$memoria'{ print $1 }')
 					do
-						if ! ps -p $pid
+						if ! ps -p $pid >/dev/null
 						then
 							continue
 						fi
